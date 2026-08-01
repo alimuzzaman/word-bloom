@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Adaptive-icon foreground: a bold "W" tile.
+
+  An earlier version drew a miniature letter wheel plus a crossword bar; at launcher
+  size those elements collapsed into an unreadable blob. A single high-contrast
+  letterform survives the 48dp render and the circular/squircle masks, so the icon
+  stays legible everywhere. Everything sits inside the 66dp centre safe zone.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Rounded tile behind the letter, echoing the in-game letter tiles. -->
+    <path
+        android:fillColor="#FFFFC24B"
+        android:pathData="M32,32 h44 a11,11 0 0 1 11,11 v22 a11,11 0 0 1 -11,11 h-44 a11,11 0 0 1 -11,-11 v-22 a11,11 0 0 1 11,-11 z" />
+
+    <!-- The W, drawn as a filled zig-zag so it stays crisp when downscaled. -->
+    <path
+        android:fillColor="#FF11213C"
+        android:pathData="M31.5,43 L38.5,43 L43,60.5 L47.5,43 L54.5,43 L59,60.5 L63.5,43 L70.5,43 L62.5,71 L55.5,71 L51,54.5 L46.5,71 L39.5,71 z" />
+</vector>

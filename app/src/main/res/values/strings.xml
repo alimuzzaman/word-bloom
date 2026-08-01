@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Word Bloom</string>
+
+    <!-- Home -->
+    <string name="home_tagline">Swipe letters. Bloom words.</string>
+    <string name="home_play">Play</string>
+    <string name="home_continue">Continue</string>
+    <string name="home_levels">Levels</string>
+
+    <!-- Level select -->
+    <string name="level_select_title">Levels</string>
+    <string name="level_locked">Locked</string>
+    <string name="level_number">Level %1$d</string>
+
+    <!-- Game -->
+    <string name="game_level_label">Level %1$d</string>
+    <string name="game_shuffle">Shuffle</string>
+    <string name="game_hint">Hint</string>
+    <string name="game_pause">Pause</string>
+    <string name="game_bonus_words">Bonus words: %1$d</string>
+    <string name="game_already_found">Already found</string>
+    <string name="game_bonus_found">Bonus word!</string>
+    <string name="game_not_a_word">Not in this puzzle</string>
+
+    <!-- Pause -->
+    <string name="pause_title">Paused</string>
+    <string name="pause_resume">Resume</string>
+    <string name="pause_restart">Restart level</string>
+    <string name="pause_levels">Level select</string>
+    <string name="pause_home">Quit to home</string>
+
+    <!-- Level complete -->
+    <string name="complete_title">Level complete!</string>
+    <string name="complete_next">Next level</string>
+    <string name="complete_all_done">You finished every level!</string>
+
+    <!-- Content descriptions -->
+    <string name="cd_back">Navigate back</string>
+    <string name="cd_pause">Pause the game</string>
+    <string name="cd_shuffle">Shuffle the letters</string>
+    <string name="cd_hint">Reveal a letter</string>
+</resources>

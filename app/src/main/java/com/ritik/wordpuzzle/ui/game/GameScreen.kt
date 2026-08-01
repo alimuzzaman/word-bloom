@@ -1,0 +1,374 @@
+package com.ritik.wordpuzzle.ui.game
+
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lightbulb
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.ritik.wordpuzzle.R
+import com.ritik.wordpuzzle.di.AppContainer
+import com.ritik.wordpuzzle.ui.game.components.CrosswordGrid
+import com.ritik.wordpuzzle.ui.game.components.LetterWheel
+import com.ritik.wordpuzzle.ui.game.components.WordPreview
+import com.ritik.wordpuzzle.ui.levelselect.IconCircleButton
+import com.ritik.wordpuzzle.ui.theme.AccentAmber
+import com.ritik.wordpuzzle.ui.theme.AccentTeal
+import com.ritik.wordpuzzle.ui.theme.WordPuzzleTheme
+import com.ritik.wordpuzzle.util.Haptics
+
+/**
+ * Gameplay screen.
+ *
+ * Owns no game state of its own: everything comes from [GameViewModel] and every
+ * interaction leaves as a [GameIntent]. That is what makes rotation free — the
+ * composable can be destroyed and rebuilt and the board is unchanged.
+ */
+@Composable
+fun GameRoute(
+    levelId: Int,
+    appContainer: AppContainer,
+    onNavigateToLevel: (Int) -> Unit,
+    onNavigateToLevelSelect: () -> Unit,
+    onNavigateHome: () -> Unit,
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val viewModel: GameViewModel = viewModel(
+        factory = GameViewModel.factory(
+            appContainer.levelRepository,
+            appContainer.progressRepository,
+        ),
+    )
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val view = LocalView.current
+    val haptics = remember(view) { Haptics(view) }
+
+    // Load once per level id. Guarded inside the ViewModel too, so a recomposition
+    // or rotation cannot reset the board.
+    LaunchedEffect(levelId) {
+        viewModel.onIntent(GameIntent.LoadLevel(levelId))
+    }
+
+    // Auto-pause when the app goes to the background, so a player returning from a
+    // phone call is not staring at a live board they have lost their place in.
+    LifecycleEventEffect(Lifecycle.Event.ON_STOP) {
+        if (!state.isLevelComplete) viewModel.onIntent(GameIntent.Pause)
+    }
+
+    // One-shot effects: feedback and navigation.
+    LaunchedEffect(Unit) {
+        viewModel.effects.collect { effect ->
+            when (effect) {
+                is GameEffect.WordAccepted -> haptics.success()
+                is GameEffect.BonusWordAccepted -> haptics.light()
+                GameEffect.WordRejected -> haptics.reject()
+                GameEffect.LevelCompleted -> haptics.celebrate()
+                is GameEffect.NavigateToLevel -> onNavigateToLevel(effect.levelId)
+                GameEffect.NavigateHome -> onNavigateHome()
+            }
+        }
+    }
+
+    // System back: pause first, then let a second back leave the level. This is the
+    // behaviour players expect from a game — back should never dump you out of a
+    // level you are mid-way through without warning.
+    BackHandler(enabled = !state.isPaused && !state.isLevelComplete) {
+        viewModel.onIntent(GameIntent.Pause)
+    }
+
+    GameScreen(
+        state = state,
+        onIntent = viewModel::onIntent,
+        onQuitToHome = onNavigateHome,
+        onGoToLevelSelect = onNavigateToLevelSelect,
+        modifier = modifier,
+    )
+}
+
+@Composable
+private fun GameScreen(
+    state: GameUiState,
+    onIntent: (GameIntent) -> Unit,
+    onQuitToHome: () -> Unit,
+    onGoToLevelSelect: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val colors = WordPuzzleTheme.colors
+
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(Brush.verticalGradient(listOf(colors.backgroundTop, colors.backgroundBottom))),
+    ) {
+        when {
+            state.isLoading || state.level == null -> {
+                CircularProgressIndicator(
+                    color = AccentAmber,
+                    modifier = Modifier.align(Alignment.Center),
+                )
+            }
+
+            else -> {
+                GameContent(state = state, onIntent = onIntent)
+            }
+        }
+
+        // Pause overlay — state, not a destination. See WordPuzzleNavHost for why.
+        PauseOverlay(
+            visible = state.isPaused && !state.isLevelComplete,
+            levelId = state.level?.id ?: 0,
+            onResume = { onIntent(GameIntent.Resume) },
+            onRestart = { onIntent(GameIntent.RestartLevel) },
+            onLevelSelect = onGoToLevelSelect,
+            onQuit = onQuitToHome,
+        )
+
+        LevelCompleteOverlay(
+            visible = state.isLevelComplete,
+            levelId = state.level?.id ?: 0,
+            bonusWordCount = state.foundBonusWords.size,
+            isLastLevel = state.isLastLevel,
+            onNext = { onIntent(GameIntent.AdvanceToNextLevel) },
+            onLevelSelect = onGoToLevelSelect,
+        )
+    }
+}
+
+@Composable
+private fun GameContent(
+    state: GameUiState,
+    onIntent: (GameIntent) -> Unit,
+) {
+    val level = state.level ?: return
+    val colors = WordPuzzleTheme.colors
+
+    // Dim and disable the board while paused so the overlay clearly owns the screen.
+    val boardAlpha by animateFloatAsState(
+        targetValue = if (state.isPaused) 0.25f else 1f,
+        animationSpec = tween(220),
+        label = "boardAlpha",
+    )
+
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxSize()
+            .systemBarsPadding(),
+    ) {
+    // Size the wheel from whichever axis is tighter. Deriving it from width alone
+    // overflows the bottom of short or split-screen windows.
+    val wheelSize = minOf(
+        maxWidth * WHEEL_WIDTH_FRACTION,
+        maxHeight * WHEEL_HEIGHT_FRACTION,
+    ).coerceIn(WHEEL_MIN, WHEEL_MAX)
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        GameTopBar(
+            levelId = level.id,
+            foundCount = state.foundWords.size,
+            totalCount = state.totalWords,
+            bonusCount = state.foundBonusWords.size,
+            progress = state.progressFraction,
+            onPause = { onIntent(GameIntent.Pause) },
+        )
+
+        // Board takes the space the wheel does not need, and the grid centres
+        // itself inside it. Small levels (a 3x3 grid) therefore sit in the middle
+        // of that area rather than hugging the top bar.
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .padding(horizontal = 20.dp)
+                .alpha(boardAlpha),
+        ) {
+            CrosswordGrid(
+                level = level,
+                foundWords = state.foundWords,
+                revealedCells = state.revealedCells,
+                lastAcceptedWord = state.lastAcceptedWord,
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
+
+        WordPreview(
+            word = state.currentWord,
+            feedback = state.feedback,
+            modifier = Modifier.fillMaxWidth(),
+        )
+
+        // Clear transient feedback shortly after it appears, so the chip does not
+        // linger once its animation has served its purpose.
+        LaunchedEffect(state.feedback, state.lastAcceptedWord) {
+            if (state.feedback != null && state.currentWord.isEmpty()) {
+                kotlinx.coroutines.delay(FEEDBACK_LINGER_MS)
+                onIntent(GameIntent.ConsumeFeedback)
+            }
+        }
+
+        Spacer(Modifier.height(4.dp))
+
+        // The wheel keeps a fixed diameter rather than filling the row, so the
+        // action buttons sit just outside it instead of at the screen bezels.
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 20.dp),
+        ) {
+            LetterWheel(
+                tiles = state.wheelTiles,
+                selection = state.selection,
+                onSelectionStart = { onIntent(GameIntent.BeginSelection(it)) },
+                onSelectionExtend = { onIntent(GameIntent.ExtendSelection(it)) },
+                onSelectionCommit = { onIntent(GameIntent.CommitSelection) },
+                onSelectionCancel = { onIntent(GameIntent.CancelSelection) },
+                enabled = !state.isPaused && !state.isLevelComplete,
+                modifier = Modifier.size(wheelSize),
+            )
+
+            IconCircleButton(
+                icon = Icons.Default.Lightbulb,
+                contentDescription = stringResource(R.string.cd_hint),
+                onClick = { onIntent(GameIntent.UseHint) },
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .padding(start = 20.dp),
+            )
+            IconCircleButton(
+                icon = Icons.Default.Refresh,
+                contentDescription = stringResource(R.string.cd_shuffle),
+                onClick = { onIntent(GameIntent.Shuffle) },
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .padding(end = 20.dp),
+            )
+        }
+    }
+    }
+}
+
+@Composable
+private fun GameTopBar(
+    levelId: Int,
+    foundCount: Int,
+    totalCount: Int,
+    bonusCount: Int,
+    progress: Float,
+    onPause: () -> Unit,
+) {
+    val colors = WordPuzzleTheme.colors
+    val animatedProgress by animateFloatAsState(
+        targetValue = progress,
+        animationSpec = tween(420),
+        label = "levelProgress",
+    )
+
+    Column(Modifier.padding(horizontal = 16.dp, vertical = 10.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconCircleButton(
+                icon = Icons.Default.Pause,
+                contentDescription = stringResource(R.string.cd_pause),
+                onClick = onPause,
+            )
+            Spacer(Modifier.size(14.dp))
+            Column {
+                Text(
+                    text = stringResource(R.string.game_level_label, levelId),
+                    color = colors.textPrimary,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Black,
+                )
+                Text(
+                    text = "$foundCount of $totalCount words",
+                    color = colors.textSecondary,
+                    fontSize = 12.sp,
+                )
+            }
+            Spacer(Modifier.weight(1f))
+            if (bonusCount > 0) {
+                Box(
+                    modifier = Modifier
+                        .background(AccentAmber.copy(alpha = 0.16f), RoundedCornerShape(50))
+                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                ) {
+                    Text(
+                        text = "★ $bonusCount",
+                        color = AccentAmber,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
+        }
+
+        Spacer(Modifier.height(10.dp))
+
+        // Progress bar
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(6.dp)
+                .background(Color.White.copy(alpha = 0.1f), RoundedCornerShape(50)),
+        ) {
+            Box(
+                Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth(animatedProgress.coerceIn(0f, 1f))
+                    .background(
+                        Brush.horizontalGradient(listOf(AccentTeal, AccentAmber)),
+                        RoundedCornerShape(50),
+                    ),
+            )
+        }
+    }
+}
+
+private const val FEEDBACK_LINGER_MS = 700L
+
+/** Wheel diameter as a fraction of width — leaves room for the side buttons. */
+private const val WHEEL_WIDTH_FRACTION = 0.66f
+
+/** …and of height, so the wheel cannot overflow a short window. */
+private const val WHEEL_HEIGHT_FRACTION = 0.34f
+
+private val WHEEL_MIN = 200.dp
+private val WHEEL_MAX = 300.dp

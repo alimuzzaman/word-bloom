@@ -1,0 +1,1203 @@
+{
+  "levels": [
+    {
+      "id": 1,
+      "letters": "CAT",
+      "words": [
+        "CAT",
+        "ACT",
+        "AT"
+      ],
+      "bonusWords": [
+        "TA"
+      ],
+      "rows": 3,
+      "cols": 3,
+      "placements": [
+        {
+          "word": "ACT",
+          "row": 1,
+          "col": 0,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "CAT",
+          "row": 0,
+          "col": 0,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "AT",
+          "row": 0,
+          "col": 2,
+          "direction": "VERTICAL"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "letters": "DOG",
+      "words": [
+        "DOG",
+        "GOD",
+        "GO",
+        "OD"
+      ],
+      "bonusWords": [
+        "DO"
+      ],
+      "rows": 4,
+      "cols": 3,
+      "placements": [
+        {
+          "word": "DOG",
+          "row": 2,
+          "col": 0,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "GOD",
+          "row": 0,
+          "col": 0,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "GO",
+          "row": 0,
+          "col": 0,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "OD",
+          "row": 2,
+          "col": 1,
+          "direction": "VERTICAL"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "letters": "EAT",
+      "words": [
+        "EAT",
+        "ATE",
+        "TEA",
+        "AT"
+      ],
+      "bonusWords": [
+        "ETA",
+        "TAE"
+      ],
+      "rows": 4,
+      "cols": 3,
+      "placements": [
+        {
+          "word": "ATE",
+          "row": 3,
+          "col": 0,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "EAT",
+          "row": 1,
+          "col": 1,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "TEA",
+          "row": 1,
+          "col": 0,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "AT",
+          "row": 0,
+          "col": 0,
+          "direction": "VERTICAL"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "letters": "STAR",
+      "words": [
+        "STAR",
+        "RATS",
+        "ARTS",
+        "TAR",
+        "RAT",
+        "ART",
+        "AS"
+      ],
+      "bonusWords": [
+        "SAT",
+        "TSAR",
+        "TAS"
+      ],
+      "rows": 6,
+      "cols": 6,
+      "placements": [
+        {
+          "word": "ARTS",
+          "row": 4,
+          "col": 0,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "RATS",
+          "row": 1,
+          "col": 3,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "STAR",
+          "row": 1,
+          "col": 0,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "ART",
+          "row": 2,
+          "col": 3,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "RAT",
+          "row": 0,
+          "col": 5,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "TAR",
+          "row": 3,
+          "col": 0,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "AS",
+          "row": 0,
+          "col": 0,
+          "direction": "VERTICAL"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "letters": "LAMP",
+      "words": [
+        "LAMP",
+        "PALM",
+        "MAP",
+        "LAP",
+        "PAL",
+        "AMP"
+      ],
+      "bonusWords": [
+        "ALP",
+        "LAM",
+        "APM"
+      ],
+      "rows": 5,
+      "cols": 5,
+      "placements": [
+        {
+          "word": "LAMP",
+          "row": 2,
+          "col": 0,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "PALM",
+          "row": 0,
+          "col": 0,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "AMP",
+          "row": 0,
+          "col": 3,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "LAP",
+          "row": 0,
+          "col": 2,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "MAP",
+          "row": 2,
+          "col": 2,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "PAL",
+          "row": 4,
+          "col": 2,
+          "direction": "HORIZONTAL"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "letters": "BEAR",
+      "words": [
+        "BEAR",
+        "BARE",
+        "EAR",
+        "ERA",
+        "ARE",
+        "BAR"
+      ],
+      "bonusWords": [
+        "BRA",
+        "REB",
+        "ABE"
+      ],
+      "rows": 6,
+      "cols": 5,
+      "placements": [
+        {
+          "word": "BARE",
+          "row": 5,
+          "col": 0,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "BEAR",
+          "row": 2,
+          "col": 2,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "ARE",
+          "row": 3,
+          "col": 0,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "BAR",
+          "row": 2,
+          "col": 2,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "EAR",
+          "row": 0,
+          "col": 4,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "ERA",
+          "row": 1,
+          "col": 0,
+          "direction": "VERTICAL"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "letters": "MOON",
+      "words": [
+        "MOON",
+        "MONO",
+        "MOO",
+        "ON",
+        "NO",
+        "OM"
+      ],
+      "bonusWords": [
+        "MON",
+        "NOM"
+      ],
+      "rows": 5,
+      "cols": 5,
+      "placements": [
+        {
+          "word": "MONO",
+          "row": 3,
+          "col": 0,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "MOON",
+          "row": 0,
+          "col": 2,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "MOO",
+          "row": 0,
+          "col": 2,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "NO",
+          "row": 1,
+          "col": 1,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "OM",
+          "row": 0,
+          "col": 4,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "ON",
+          "row": 3,
+          "col": 1,
+          "direction": "VERTICAL"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "letters": "PLANE",
+      "words": [
+        "PLANE",
+        "PANEL",
+        "PLAN",
+        "LANE",
+        "PALE",
+        "LEAP",
+        "PEN",
+        "NAP"
+      ],
+      "bonusWords": [
+        "PEAL",
+        "PENAL",
+        "PLEA",
+        "LEAN",
+        "PANE",
+        "ALE",
+        "APE",
+        "NAE"
+      ],
+      "rows": 7,
+      "cols": 7,
+      "placements": [
+        {
+          "word": "PANEL",
+          "row": 3,
+          "col": 0,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "PLANE",
+          "row": 0,
+          "col": 2,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "LANE",
+          "row": 1,
+          "col": 2,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "LEAP",
+          "row": 3,
+          "col": 4,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "PALE",
+          "row": 5,
+          "col": 3,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "PLAN",
+          "row": 3,
+          "col": 0,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "NAP",
+          "row": 0,
+          "col": 0,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "PEN",
+          "row": 0,
+          "col": 5,
+          "direction": "VERTICAL"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "letters": "STONE",
+      "words": [
+        "STONE",
+        "NOTES",
+        "TONES",
+        "ONSET",
+        "NOTE",
+        "TONE",
+        "NEST",
+        "TENS",
+        "SET"
+      ],
+      "bonusWords": [
+        "SENT",
+        "TOES",
+        "NOSE",
+        "ONES",
+        "SON",
+        "TON",
+        "NET",
+        "ONE",
+        "TOE",
+        "EON"
+      ],
+      "rows": 8,
+      "cols": 8,
+      "placements": [
+        {
+          "word": "NOTES",
+          "row": 7,
+          "col": 2,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "ONSET",
+          "row": 3,
+          "col": 4,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "STONE",
+          "row": 3,
+          "col": 2,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "TONES",
+          "row": 5,
+          "col": 0,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "NEST",
+          "row": 2,
+          "col": 0,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "NOTE",
+          "row": 0,
+          "col": 6,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "TENS",
+          "row": 0,
+          "col": 2,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "TONE",
+          "row": 0,
+          "col": 4,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "SET",
+          "row": 0,
+          "col": 0,
+          "direction": "HORIZONTAL"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "letters": "BRAIN",
+      "words": [
+        "BRAIN",
+        "BRAN",
+        "RAIN",
+        "BARN",
+        "RIB",
+        "AIR",
+        "BAR",
+        "RAN"
+      ],
+      "bonusWords": [
+        "NAB",
+        "BIN",
+        "BAN",
+        "AIN",
+        "NIB",
+        "BRA"
+      ],
+      "rows": 7,
+      "cols": 7,
+      "placements": [
+        {
+          "word": "BRAIN",
+          "row": 5,
+          "col": 0,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "BARN",
+          "row": 3,
+          "col": 1,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "BRAN",
+          "row": 3,
+          "col": 1,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "RAIN",
+          "row": 0,
+          "col": 4,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "AIR",
+          "row": 1,
+          "col": 4,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "BAR",
+          "row": 1,
+          "col": 2,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "RAN",
+          "row": 1,
+          "col": 6,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "RIB",
+          "row": 1,
+          "col": 0,
+          "direction": "HORIZONTAL"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "letters": "CHAIR",
+      "words": [
+        "CHAIR",
+        "CHAI",
+        "HAIR",
+        "RICH",
+        "CHAR",
+        "ARCH",
+        "AIR",
+        "CAR"
+      ],
+      "bonusWords": [
+        "RAH",
+        "CHI",
+        "ICH",
+        "AHI",
+        "RIA"
+      ],
+      "rows": 7,
+      "cols": 7,
+      "placements": [
+        {
+          "word": "CHAIR",
+          "row": 6,
+          "col": 0,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "ARCH",
+          "row": 3,
+          "col": 1,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "CHAI",
+          "row": 3,
+          "col": 3,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "CHAR",
+          "row": 3,
+          "col": 3,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "HAIR",
+          "row": 0,
+          "col": 6,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "RICH",
+          "row": 0,
+          "col": 4,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "AIR",
+          "row": 3,
+          "col": 5,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "CAR",
+          "row": 0,
+          "col": 2,
+          "direction": "HORIZONTAL"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "letters": "GARDEN",
+      "words": [
+        "GARDEN",
+        "DANGER",
+        "GANDER",
+        "RANGED",
+        "GRADE",
+        "GRAND",
+        "ANGER",
+        "RANGE",
+        "READ",
+        "DEAR",
+        "RAGE",
+        "GEAR"
+      ],
+      "bonusWords": [
+        "DARN",
+        "RAND",
+        "DANG",
+        "GRAN",
+        "NEAR",
+        "EARN",
+        "DARE",
+        "AGED",
+        "DRAG",
+        "REND",
+        "DEAN"
+      ],
+      "rows": 10,
+      "cols": 10,
+      "placements": [
+        {
+          "word": "DANGER",
+          "row": 5,
+          "col": 0,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "GANDER",
+          "row": 0,
+          "col": 5,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "GARDEN",
+          "row": 0,
+          "col": 2,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "RANGED",
+          "row": 0,
+          "col": 0,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "ANGER",
+          "row": 2,
+          "col": 4,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "GRADE",
+          "row": 0,
+          "col": 5,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "GRAND",
+          "row": 5,
+          "col": 3,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "RANGE",
+          "row": 2,
+          "col": 8,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "DEAR",
+          "row": 9,
+          "col": 3,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "GEAR",
+          "row": 6,
+          "col": 6,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "RAGE",
+          "row": 0,
+          "col": 0,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "READ",
+          "row": 7,
+          "col": 1,
+          "direction": "HORIZONTAL"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "letters": "MASTER",
+      "words": [
+        "MASTER",
+        "STREAM",
+        "TAMERS",
+        "MATES",
+        "STEAM",
+        "TEAMS",
+        "MEATS",
+        "SMART",
+        "TERMS",
+        "TAMER",
+        "RATES",
+        "STARE"
+      ],
+      "bonusWords": [
+        "MARES",
+        "REAMS",
+        "TEARS",
+        "MATE",
+        "TEAM",
+        "MEAT",
+        "STAR",
+        "RATE",
+        "TEAR",
+        "ARMS",
+        "RAMS",
+        "MAST"
+      ],
+      "rows": 10,
+      "cols": 10,
+      "placements": [
+        {
+          "word": "MASTER",
+          "row": 9,
+          "col": 4,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "STREAM",
+          "row": 4,
+          "col": 4,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "TAMERS",
+          "row": 5,
+          "col": 4,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "MATES",
+          "row": 5,
+          "col": 6,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "MEATS",
+          "row": 7,
+          "col": 3,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "RATES",
+          "row": 4,
+          "col": 0,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "SMART",
+          "row": 0,
+          "col": 2,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "STARE",
+          "row": 1,
+          "col": 0,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "STEAM",
+          "row": 0,
+          "col": 2,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "TAMER",
+          "row": 1,
+          "col": 8,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "TEAMS",
+          "row": 2,
+          "col": 0,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "TERMS",
+          "row": 3,
+          "col": 5,
+          "direction": "HORIZONTAL"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "letters": "PLANET",
+      "words": [
+        "PLANET",
+        "PLATEN",
+        "PLANT",
+        "PLATE",
+        "PETAL",
+        "LEAPT",
+        "PLEAT",
+        "PANEL",
+        "PLANE",
+        "LATEN",
+        "PLAN",
+        "LEAN"
+      ],
+      "bonusWords": [
+        "PEAL",
+        "PLEA",
+        "LANE",
+        "PALE",
+        "LEAP",
+        "PANT",
+        "NEAT",
+        "ANTE",
+        "TAPE",
+        "PEAT",
+        "LATE",
+        "TALE",
+        "PENAL"
+      ],
+      "rows": 10,
+      "cols": 10,
+      "placements": [
+        {
+          "word": "PLANET",
+          "row": 6,
+          "col": 4,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "PLATEN",
+          "row": 1,
+          "col": 7,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "LATEN",
+          "row": 4,
+          "col": 9,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "LEAPT",
+          "row": 3,
+          "col": 4,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "PANEL",
+          "row": 3,
+          "col": 0,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "PETAL",
+          "row": 0,
+          "col": 1,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "PLANE",
+          "row": 0,
+          "col": 1,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "PLANT",
+          "row": 7,
+          "col": 0,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "PLATE",
+          "row": 5,
+          "col": 2,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "PLEAT",
+          "row": 9,
+          "col": 0,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "LEAN",
+          "row": 8,
+          "col": 6,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "PLAN",
+          "row": 2,
+          "col": 6,
+          "direction": "HORIZONTAL"
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "letters": "CASTLE",
+      "words": [
+        "CASTLE",
+        "CLEATS",
+        "SLATE",
+        "STEAL",
+        "TALES",
+        "LEAST",
+        "CLEAT",
+        "SCALE",
+        "LACES",
+        "CASTE",
+        "STALE",
+        "TEALS"
+      ],
+      "bonusWords": [
+        "CASE",
+        "LACE",
+        "SEAL",
+        "SALE",
+        "EAST",
+        "SEAT",
+        "LAST",
+        "CAST",
+        "CATS",
+        "ACTS",
+        "TALC",
+        "ALES"
+      ],
+      "rows": 10,
+      "cols": 10,
+      "placements": [
+        {
+          "word": "CASTLE",
+          "row": 9,
+          "col": 0,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "CLEATS",
+          "row": 4,
+          "col": 2,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "CASTE",
+          "row": 5,
+          "col": 5,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "CLEAT",
+          "row": 5,
+          "col": 5,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "LACES",
+          "row": 4,
+          "col": 0,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "LEAST",
+          "row": 4,
+          "col": 7,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "SCALE",
+          "row": 1,
+          "col": 0,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "SLATE",
+          "row": 2,
+          "col": 9,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "STALE",
+          "row": 0,
+          "col": 3,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "STEAL",
+          "row": 0,
+          "col": 3,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "TALES",
+          "row": 7,
+          "col": 1,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "TEALS",
+          "row": 2,
+          "col": 5,
+          "direction": "HORIZONTAL"
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "letters": "ORANGE",
+      "words": [
+        "ORANGE",
+        "ONAGER",
+        "GROAN",
+        "ORGAN",
+        "ARGON",
+        "RANGE",
+        "ANGER",
+        "GONER",
+        "AGONE",
+        "GONE",
+        "EARN",
+        "NEAR"
+      ],
+      "bonusWords": [
+        "ROAN",
+        "GEAR",
+        "RAGE",
+        "OGRE",
+        "GORE",
+        "RANG",
+        "NAG",
+        "AGE",
+        "EGO",
+        "OAR",
+        "ERA",
+        "ONE"
+      ],
+      "rows": 10,
+      "cols": 10,
+      "placements": [
+        {
+          "word": "ONAGER",
+          "row": 5,
+          "col": 1,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "ORANGE",
+          "row": 0,
+          "col": 5,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "AGONE",
+          "row": 0,
+          "col": 3,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "ANGER",
+          "row": 3,
+          "col": 4,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "ARGON",
+          "row": 1,
+          "col": 2,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "GONER",
+          "row": 5,
+          "col": 4,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "GROAN",
+          "row": 2,
+          "col": 8,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "ORGAN",
+          "row": 5,
+          "col": 1,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "RANGE",
+          "row": 5,
+          "col": 6,
+          "direction": "VERTICAL"
+        },
+        {
+          "word": "EARN",
+          "row": 2,
+          "col": 0,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "GONE",
+          "row": 8,
+          "col": 6,
+          "direction": "HORIZONTAL"
+        },
+        {
+          "word": "NEAR",
+          "row": 9,
+          "col": 1,
+          "direction": "HORIZONTAL"
+        }
+      ]
+    }
+  ]
+}

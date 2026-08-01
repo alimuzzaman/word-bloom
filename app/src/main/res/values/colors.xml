@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Mirrors Color.kt. Needed in XML for the pre-Compose window background. -->
+    <color name="brand_deep">#FF11213C</color>
+    <color name="brand_mid">#FF1B3A63</color>
+    <color name="brand_accent">#FFFFC24B</color>
+</resources>

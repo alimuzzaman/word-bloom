@@ -1,0 +1,14 @@
+*.iml
+.gradle/
+/local.properties
+/.idea/
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# Build outputs are ignored, but the hand-placed release APK under app/release/
+# is committed on purpose so the assessment build is downloadable from the repo.
+/app/build/
