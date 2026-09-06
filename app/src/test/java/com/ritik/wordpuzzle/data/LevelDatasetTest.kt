@@ -14,36 +14,83 @@ import java.io.File
 /**
  * Integrity tests for the shipped level catalogue.
  *
- * These parse the real `assets/levels.json` rather than a fixture, so an unplayable
+ * These parse the real `assets/categories.json` rather than a fixture, so an unplayable
  * level can never reach a build: a word that cannot be spelled from its wheel, or a
  * crossing where two words disagree, fails here rather than stranding a player on a
  * level they cannot finish.
  */
 class LevelDatasetTest {
 
-    private val levels: List<Level> by lazy {
+    private val catalog: LevelCatalogDto by lazy {
         // Unit tests run on the JVM without an AssetManager, so read the asset from
         // the source tree directly.
-        val file = File("src/main/assets/levels.json")
-        assertTrue("levels.json not found at ${file.absolutePath}", file.exists())
+        val file = File("src/main/assets/categories.json")
+        assertTrue("categories.json not found at ${file.absolutePath}", file.exists())
         Json { ignoreUnknownKeys = true }
             .decodeFromString<LevelCatalogDto>(file.readText())
-            .levels
-            .map { it.toDomain() }
+    }
+
+    private val levels: List<Level> by lazy {
+        catalog.categories.flatMap { category -> category.levels.map { it.toDomain() } }
     }
 
     @Test
-    fun `catalogue holds at least the required number of levels`() {
-        // The brief asks for 10-20 playable levels.
-        assertTrue("expected >= 10 levels, found ${levels.size}", levels.size >= 10)
-        assertTrue("expected <= 20 levels, found ${levels.size}", levels.size <= 20)
+    fun `catalogue holds sixteen bilingual categories with ten levels each`() {
+        assertEquals(2, catalog.schemaVersion)
+        assertEquals(16, catalog.categories.size)
+        catalog.categories.forEach { category ->
+            assertTrue(category.id.isNotBlank())
+            assertTrue(category.nameEn.isNotBlank())
+            assertTrue(category.nameBn.isNotBlank())
+            assertTrue(category.introductionEn.isNotBlank())
+            assertTrue(category.introductionBn.isNotBlank())
+            assertTrue(category.completionEn.isNotBlank())
+            assertTrue(category.completionBn.isNotBlank())
+            assertTrue(category.contentReviewStatus.isNotBlank())
+            assertEquals(10, category.levels.size)
+            assertTrue(category.levels.all { it.categoryId == category.id })
+        }
     }
 
     @Test
-    fun `level ids are unique and sequential from one`() {
-        val ids = levels.map { it.id }
-        assertEquals(ids.distinct(), ids)
-        assertEquals((1..levels.size).toList(), ids)
+    fun `level composite ids and orders are unique within each category`() {
+        assertEquals(levels.size, levels.map { it.key }.distinct().size)
+        catalog.categories.forEach { category ->
+            assertEquals((1..10).toList(), category.levels.sortedBy { it.order }.map { it.order })
+        }
+    }
+
+    @Test
+    fun `category stories cover every target word taught in that category`() {
+        catalog.categories.forEach { category ->
+            val heroWords = category.levels.mapNotNull { it.heroWord?.word?.uppercase() }.toSet()
+            assertTrue("${category.id} must have completion words", category.completionWords.isNotEmpty())
+            assertTrue(
+                "${category.id} completion words must be learned heroes",
+                category.completionWords.map(String::uppercase).all { it in heroWords },
+            )
+            val targetWords = category.levels
+                .flatMap { it.words }
+                .map(String::uppercase)
+                .toSet()
+            assertEquals(
+                "${category.id} storyWords must cover every unique target",
+                targetWords,
+                category.storyWords.map(String::uppercase).toSet(),
+            )
+            assertEquals(
+                "${category.id} storyWords must not contain duplicates",
+                targetWords.size,
+                category.storyWords.size,
+            )
+            assertTrue("${category.id} Bengali story is blank", category.storyBn.isNotBlank())
+            targetWords.forEach { word ->
+                assertTrue(
+                    "${category.id} English story omits whole word '$word'",
+                    containsWholeWord(category.storyEn, word),
+                )
+            }
+        }
     }
 
     @Test
@@ -135,14 +182,59 @@ class LevelDatasetTest {
     }
 
     @Test
-    fun `difficulty ramps - later levels are never easier than the first`() {
-        val firstWheel = levels.first().letters.size
-        val lastWheel = levels.last().letters.size
-        assertTrue(
-            "expected the final level's wheel ($lastWheel) to exceed the first ($firstWheel)",
-            lastWheel > firstWheel,
-        )
+    fun `difficulty rises inside every category`() {
+        catalog.categories.forEach { category ->
+            val difficulties = category.levels.sortedBy { it.order }.map { it.difficulty }
+            assertTrue("${category.id} difficulty must not go backwards", difficulties.zipWithNext().all { (a, b) -> b >= a })
+            assertTrue("${category.id} must span more than one difficulty", difficulties.first() < difficulties.last())
+        }
     }
+
+    @Test
+    fun `every level has bilingual word meanings and a lesson sentence`() {
+        levels.forEach { level ->
+            val dto = catalog.categories
+                .first { it.id == level.categoryId }
+                .levels
+                .first { it.id == level.id }
+            val meanings = dto.wordMeanings
+            assertEquals("${level.categoryId}:${level.id} meaning count", level.words.size, meanings.size)
+            assertEquals(
+                "${level.categoryId}:${level.id} meanings must cover every target",
+                level.words.toSet(),
+                meanings.map { it.word.uppercase() }.toSet(),
+            )
+            meanings.forEach { meaning ->
+                assertTrue("${level.categoryId}:${level.id} meaning word is blank", meaning.word.isNotBlank())
+                assertTrue("${level.categoryId}:${level.id} English definition is blank", meaning.definitionEn.isNotBlank())
+                assertTrue("${level.categoryId}:${level.id} Bengali translation is blank", meaning.translationBn.isNotBlank())
+                assertTrue("${level.categoryId}:${level.id} Bengali meaning is blank", meaning.meaningBn.isNotBlank())
+            }
+
+            val lesson = requireNotNull(dto.lesson) { "${level.categoryId}:${level.id} lesson is missing" }
+            assertTrue("${level.categoryId}:${level.id} English lesson is blank", lesson.sentenceEn.isNotBlank())
+            assertTrue("${level.categoryId}:${level.id} Bengali lesson is blank", lesson.sentenceBn.isNotBlank())
+            assertEquals(
+                "${level.categoryId}:${level.id} lesson usedWords must cover every target",
+                level.words.toSet(),
+                lesson.usedWords.map(String::uppercase).toSet(),
+            )
+            assertEquals(
+                "${level.categoryId}:${level.id} lesson usedWords must not contain duplicates",
+                level.words.size,
+                lesson.usedWords.size,
+            )
+            level.words.forEach { word ->
+                assertTrue(
+                    "${level.categoryId}:${level.id} English lesson omits whole word '$word'",
+                    containsWholeWord(lesson.sentenceEn, word),
+                )
+            }
+        }
+    }
+
+    private fun containsWholeWord(text: String, word: String): Boolean =
+        Regex("(?i)(?<![A-Za-z])${Regex.escape(word)}(?![A-Za-z])").containsMatchIn(text)
 
     /** True when [word] can be built from [letters], consuming each tile at most once. */
     private fun canSpell(word: String, letters: List<Char>): Boolean {

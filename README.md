@@ -1,8 +1,9 @@
 # Word Bloom
 
 A Wordscapes-style word puzzle game for Android. Swipe letters on a circular wheel to
-fill a crossword grid, find bonus words along the way, and progress through 16
-hand-validated levels.
+fill a crossword grid, find bonus words along the way, and learn through 16 bilingual
+English–Bengali categories. Each category has its own independently unlocked starting
+point and progresses from easier to harder words.
 
 Built with Kotlin, Jetpack Compose, and an MVI architecture.
 
@@ -23,8 +24,7 @@ Built with Kotlin, Jetpack Compose, and an MVI architecture.
 
 ## Running it
 
-**Install the APK:** `app/release/word-bloom-release.apk` in this repo, or build it
-yourself:
+Build and install the current category-based version yourself:
 
 ```bash
 ./gradlew :app:assembleRelease     # signed release APK
@@ -165,21 +165,36 @@ cannot fire twice.
 
 ## Level data
 
-16 levels in [`app/src/main/assets/levels.json`](app/src/main/assets/levels.json),
-loaded once and memoised by `AssetLevelRepository`.
+16 categories and 160 levels in
+[`app/src/main/assets/categories.json`](app/src/main/assets/categories.json), loaded
+through an offline-first repository. Category introductions, completion passages,
+hero words, target-word meanings, and short lesson stories include English and Bengali
+text; gameplay answers remain English.
 
 ```json
 {
+  "id": "fish",
+  "nameEn": "Fish",
+  "nameBn": "মাছ",
+  "introductionEn": "Fish live in water.",
+  "introductionBn": "মাছ পানিতে বাস করে।",
+  "levels": [{
   "id": 1,
-  "letters": "CAT",
-  "words": ["CAT", "ACT", "AT"],
-  "bonusWords": ["TA"],
-  "rows": 3, "cols": 3,
-  "placements": [
-    { "word": "CAT", "row": 0, "col": 0, "direction": "VERTICAL" },
-    { "word": "ACT", "row": 2, "col": 0, "direction": "HORIZONTAL" },
-    { "word": "AT",  "row": 1, "col": 0, "direction": "HORIZONTAL" }
-  ]
+  "order": 1,
+  "difficulty": 1,
+  "heroWord": {
+    "word": "COD",
+    "definitionEn": "A kind of sea fish.",
+    "translationBn": "কড মাছ",
+    "meaningBn": "এক ধরনের সামুদ্রিক মাছ।"
+  },
+  "wordMeanings": ["one bilingual record for every target word"],
+  "lesson": {
+    "sentenceEn": "The cod swims in cold water.",
+    "sentenceBn": "কড মাছ ঠান্ডা পানিতে সাঁতার কাটে।",
+    "usedWords": ["COD", "COLD"]
+  }
+  }]
 }
 ```
 
@@ -190,13 +205,16 @@ loaded once and memoised by `AssetLevelRepository`.
   than stored as a character matrix, which keeps the file compact and makes the
   crossing constraints explicit.
 
-Difficulty ramps from 3-letter wheels (levels 1–3) to 6-letter wheels with 12 words
-each (levels 12–16). 129 target words in total.
+Every category begins with Level 1 unlocked. Later levels unlock only inside that
+category. The catalog contains 560 target-word occurrences across 10 levels per category, with
+difficulty and age bands increasing inside each category. Educational copy remains
+marked `draft` until a Bangladeshi Bengali reviewer and primary educator approve it.
 
 ### The levels are generated and verified, not hand-typed
 
 Hand-authoring interlocking crosswords is error-prone — my first draft had words that
-could not be spelled from their own wheel. [`tools/generate_levels.py`](tools/generate_levels.py)
+could not be spelled from their own wheel.
+[`tools/generate_category_catalog.py`](tools/generate_category_catalog.py)
 lays out each level by backtracking search and asserts every invariant before writing
 the file: words spellable from the wheel, wheel matching the longest word, every word
 placed and crossing an existing one, crossings agreeing on the shared letter, no
@@ -205,6 +223,26 @@ accidental adjacent letter runs, and a bounded grid size.
 The same invariants are re-checked against the shipped JSON in
 [`LevelDatasetTest`](app/src/test/java/com/ritik/wordpuzzle/data/LevelDatasetTest.kt),
 so an unplayable level cannot reach a build even if someone edits the JSON by hand.
+
+### Optional catalog API
+
+The bundled asset is always available offline. A build can optionally pull a newer
+approved catalog from the reference API:
+
+```bash
+cd server && npm test
+node catalog-server.mjs
+
+./gradlew :app:installDebug \
+  -PWORD_BLOOM_API_URL=http://10.0.2.2:8787/v1/catalog
+```
+
+`10.0.2.2` lets the Android emulator reach the host machine. Production builds require
+HTTPS. The client validates every downloaded puzzle, accepts only educator-approved
+schema-v2 content, uses ETag/304 requests, writes an atomic app-private cache, rejects
+older versions, and falls back to a valid cache or the bundled catalog after any
+network or validation failure. See [`server/README.md`](server/README.md) for the
+endpoint contract and deployment boundaries.
 
 ---
 
@@ -288,12 +326,13 @@ words, rejection, backtracking, double-use prevention, hints, shuffle, pause blo
 input, restart, level completion and unlocking, `SavedStateHandle` restoration, and
 the rapid-succession regression.
 
-**`LevelDatasetTest`** parses the real shipped `levels.json` and re-verifies every
-dataset invariant.
+**`LevelDatasetTest`** parses the real shipped `categories.json` and re-verifies every
+dataset invariant. **`ProgressRepositoryTest`** verifies independent category progress,
+idempotent completion, and the bounded migration of legacy progress into Animals.
 
-Manual verification on an API 35 emulator covered the full flow: splash → home →
-level select → gameplay → pause → completion → next level, plus process death,
-back-stack traversal, hints, and rapid swiping.
+Manual verification on an API 35 emulator covered the category hub, bilingual labels,
+independent Fish level selection, and Fish gameplay. The original linear build's wider
+interaction checks remain documented by the existing test suite.
 
 ---
 
@@ -304,7 +343,7 @@ app/src/main/java/com/ritik/wordpuzzle/
 ├── data/
 │   ├── local/ProgressRepository.kt      DataStore-backed progress
 │   ├── model/LevelDto.kt                JSON wire format
-│   └── repository/LevelRepository.kt    asset loading + DTO→domain mapping
+│   └── repository/                      validation, asset/API/cache loading
 ├── di/ServiceLocator.kt                 AppContainer
 ├── domain/model/Level.kt                Level, Placement, LetterTile, GridPosition
 ├── ui/
@@ -315,13 +354,15 @@ app/src/main/java/com/ritik/wordpuzzle/
 │   │   ├── GameScreen.kt
 │   │   ├── Overlays.kt                  pause + level complete
 │   │   └── components/                  LetterWheel, WheelTile, CrosswordGrid, WordPreview
-│   ├── home/ · levelselect/ · splash/
+│   ├── category/ · learning/ · home/ · levelselect/ · splash/
 │   ├── navigation/                      Destinations, NavHost
 │   └── theme/                           Color, Type, Theme
 └── util/Haptics.kt
 
-app/src/main/assets/levels.json          the 16 levels
-tools/generate_levels.py                 level generator + validator
+app/src/main/assets/categories.json      16 categories and their levels
+tools/generate_category_catalog.py       catalog generator + validator
+tools/test_category_catalog.py           source-to-asset generation tests
+server/                                  reference read-only catalog API
 ```
 
 ---

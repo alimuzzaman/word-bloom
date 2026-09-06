@@ -1,0 +1,14 @@
+{
+  "name": "word-bloom-catalog-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Reference read-only API for the Word Bloom level catalogue",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node catalog-server.mjs",
+    "test": "node --test"
+  }
+}

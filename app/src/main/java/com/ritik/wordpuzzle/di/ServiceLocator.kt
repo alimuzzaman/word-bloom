@@ -3,8 +3,10 @@ package com.ritik.wordpuzzle.di
 import android.content.Context
 import com.ritik.wordpuzzle.data.local.DataStoreProgressRepository
 import com.ritik.wordpuzzle.data.local.ProgressRepository
-import com.ritik.wordpuzzle.data.repository.AssetLevelRepository
+import com.ritik.wordpuzzle.data.local.DataStoreStoryReadingModeRepository
+import com.ritik.wordpuzzle.data.local.StoryReadingModeRepository
 import com.ritik.wordpuzzle.data.repository.LevelRepository
+import com.ritik.wordpuzzle.data.repository.RemoteLevelRepository
 
 /**
  * Minimal manual DI container.
@@ -18,6 +20,10 @@ import com.ritik.wordpuzzle.data.repository.LevelRepository
 class AppContainer(context: Context) {
     private val appContext = context.applicationContext
 
-    val levelRepository: LevelRepository by lazy { AssetLevelRepository(appContext) }
+    /** Remote content is opt-in; the repository always falls back to bundled assets. */
+    val levelRepository: LevelRepository by lazy { RemoteLevelRepository(appContext) }
     val progressRepository: ProgressRepository by lazy { DataStoreProgressRepository(appContext) }
+    val storyReadingModeRepository: StoryReadingModeRepository by lazy {
+        DataStoreStoryReadingModeRepository(appContext)
+    }
 }

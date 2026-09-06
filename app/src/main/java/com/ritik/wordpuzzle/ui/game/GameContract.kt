@@ -36,6 +36,7 @@ data class GameUiState(
     val isLevelComplete: Boolean = false,
     val hintsUsed: Int = 0,
     val isLastLevel: Boolean = false,
+    val categoryId: String = "",
 ) {
     /** Live preview of the traced word. */
     val currentWord: String get() = selection.map { it.char }.joinToString("")
@@ -51,7 +52,7 @@ enum class WordFeedback { VALID, BONUS, ALREADY_FOUND, INVALID }
 
 /** Everything the gameplay UI can ask the ViewModel to do. */
 sealed interface GameIntent {
-    data class LoadLevel(val levelId: Int) : GameIntent
+    data class LoadLevel(val categoryId: String, val levelId: Int) : GameIntent
 
     /** Finger touched down on a wheel tile. */
     data class BeginSelection(val tile: LetterTile) : GameIntent
@@ -82,6 +83,7 @@ sealed interface GameEffect {
     data class BonusWordAccepted(val word: String) : GameEffect
     data object WordRejected : GameEffect
     data object LevelCompleted : GameEffect
-    data class NavigateToLevel(val levelId: Int) : GameEffect
+    data class NavigateToLevel(val categoryId: String, val levelId: Int) : GameEffect
+    data class NavigateToLevelSelect(val categoryId: String) : GameEffect
     data object NavigateHome : GameEffect
 }

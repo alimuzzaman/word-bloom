@@ -42,6 +42,10 @@ import androidx.compose.material3.Text
 import com.ritik.wordpuzzle.R
 import com.ritik.wordpuzzle.ui.common.PrimaryButton
 import com.ritik.wordpuzzle.ui.common.SecondaryButton
+import com.ritik.wordpuzzle.ui.learning.LearningWordCardData
+import com.ritik.wordpuzzle.ui.learning.LearningStoryModal
+import com.ritik.wordpuzzle.ui.learning.LevelLearningContent
+import com.ritik.wordpuzzle.ui.learning.LessonCardData
 import com.ritik.wordpuzzle.ui.theme.AccentAmber
 import com.ritik.wordpuzzle.ui.theme.AccentTeal
 import com.ritik.wordpuzzle.ui.theme.WordPuzzleTheme
@@ -110,8 +114,9 @@ fun PauseOverlay(
 /**
  * Level-complete celebration.
  *
- * The radiating burst behind the card is a single rotating sweep gradient — one
- * composable and no particle system, but it carries the moment.
+ * The completion content now lives in the shared learning modal. The small
+ * rotating sweep remains in the modal body so the celebration survives the
+ * single-scroll layout.
  */
 @Composable
 fun LevelCompleteOverlay(
@@ -119,62 +124,51 @@ fun LevelCompleteOverlay(
     levelId: Int,
     bonusWordCount: Int,
     isLastLevel: Boolean,
+    lesson: LessonCardData? = null,
+    /** All target meanings, shown after the lesson because completion is safe for answers. */
+    words: List<LearningWordCardData> = emptyList(),
     onNext: () -> Unit,
     onLevelSelect: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    ScrimOverlay(visible = visible, modifier = modifier) {
-        Box(contentAlignment = Alignment.Center) {
-            CelebrationBurst()
-
-            OverlayCard {
-                Text(
-                    text = "★",
-                    color = AccentAmber,
-                    fontSize = 46.sp,
-                )
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    text = stringResource(R.string.complete_title),
-                    color = WordPuzzleTheme.colors.textPrimary,
-                    fontSize = 27.sp,
-                    fontWeight = FontWeight.Black,
-                    textAlign = TextAlign.Center,
-                )
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    text = if (bonusWordCount > 0) {
-                        "Level $levelId · $bonusWordCount bonus word${if (bonusWordCount == 1) "" else "s"}"
-                    } else {
-                        "Level $levelId"
-                    },
-                    color = WordPuzzleTheme.colors.textSecondary,
-                    fontSize = 14.sp,
-                    textAlign = TextAlign.Center,
-                )
-                Spacer(Modifier.height(26.dp))
-
-                if (isLastLevel) {
+    LearningStoryModal(
+        visible = visible,
+        title = stringResource(R.string.complete_title),
+        subtitle = if (bonusWordCount > 0) {
+            "Level $levelId · $bonusWordCount bonus word${if (bonusWordCount == 1) "" else "s"}"
+        } else {
+            "Level $levelId"
+        },
+        contentKey = "completion-$levelId",
+        // A completion screen must be resolved with one of its actions. Back and
+        // outside taps are intentionally not dismissal paths here.
+        onDismiss = {},
+        showClose = false,
+        modifier = modifier,
+        footer = {
+            if (isLastLevel) {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(
                         text = stringResource(R.string.complete_all_done),
                         color = AccentTeal,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth(),
                     )
-                    Spacer(Modifier.height(18.dp))
                     PrimaryButton(
                         text = stringResource(R.string.pause_levels),
                         onClick = onLevelSelect,
                         modifier = Modifier.fillMaxWidth(),
                     )
-                } else {
+                }
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     PrimaryButton(
                         text = stringResource(R.string.complete_next),
                         onClick = onNext,
                         modifier = Modifier.fillMaxWidth(),
                     )
-                    Spacer(Modifier.height(12.dp))
                     SecondaryButton(
                         text = stringResource(R.string.pause_levels),
                         onClick = onLevelSelect,
@@ -182,7 +176,22 @@ fun LevelCompleteOverlay(
                     )
                 }
             }
+        },
+    ) {
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center,
+        ) {
+            CelebrationBurst(modifier = Modifier.size(150.dp))
+            Text(text = "★", color = AccentAmber, fontSize = 46.sp)
         }
+        LevelLearningContent(
+            lesson = lesson,
+            words = words,
+            glossaryTitle = "All target words · সব লক্ষ্যশব্দ",
+            emptyText = "This level has no word meanings yet.\nএই স্তরে এখনও কোনো শব্দের অর্থ নেই।",
+            showDetailedWords = true,
+        )
     }
 }
 
@@ -227,11 +236,14 @@ private fun ScrimOverlay(
 }
 
 @Composable
-private fun OverlayCard(content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit) {
+private fun OverlayCard(
+    modifier: Modifier = Modifier,
+    content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit,
+) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .background(
                 brush = Brush.verticalGradient(
@@ -248,7 +260,7 @@ private fun OverlayCard(content: @Composable androidx.compose.foundation.layout.
 }
 
 @Composable
-private fun CelebrationBurst(modifier: Modifier = Modifier) {
+private fun CelebrationBurst(modifier: Modifier = Modifier.size(420.dp)) {
     val infinite = rememberInfiniteTransition(label = "burst")
     val rotation by infinite.animateFloat(
         initialValue = 0f,
@@ -259,7 +271,6 @@ private fun CelebrationBurst(modifier: Modifier = Modifier) {
 
     Box(
         modifier = modifier
-            .size(420.dp)
             .rotate(rotation)
             .background(
                 brush = Brush.sweepGradient(

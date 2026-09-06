@@ -40,4 +40,5 @@
     <string name="cd_pause">Pause the game</string>
     <string name="cd_shuffle">Shuffle the letters</string>
     <string name="cd_hint">Reveal a letter</string>
+    <string name="cd_learn_words">Show meanings for found words</string>
 </resources>

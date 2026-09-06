@@ -12,10 +12,16 @@ sealed class Destination(val route: String) {
 
     data object Home : Destination("home")
 
-    data object LevelSelect : Destination("level_select")
+    data object Categories : Destination("categories")
 
-    data object Game : Destination("game/{levelId}") {
+    data object LevelSelect : Destination("categories/{categoryId}/levels") {
+        const val ARG_CATEGORY_ID = "categoryId"
+        fun createRoute(categoryId: String) = "categories/$categoryId/levels"
+    }
+
+    data object Game : Destination("game/{categoryId}/{levelId}") {
+        const val ARG_CATEGORY_ID = "categoryId"
         const val ARG_LEVEL_ID = "levelId"
-        fun createRoute(levelId: Int) = "game/$levelId"
+        fun createRoute(categoryId: String, levelId: Int) = "game/$categoryId/$levelId"
     }
 }

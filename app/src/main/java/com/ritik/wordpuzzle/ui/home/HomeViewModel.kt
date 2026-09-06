@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class HomeUiState(
-    val continueLevelId: Int = 1,
     val completedCount: Int = 0,
     val totalLevels: Int = 0,
     val totalBonusWords: Int = 0,
@@ -37,16 +36,14 @@ class HomeViewModel(
 
     init {
         viewModelScope.launch {
-            val total = levelRepository.levelCount()
-            progressRepository.progress.collect { progress ->
+            val total = levelRepository.getCategories().sumOf { levelRepository.levelCount(it.id) }
+            progressRepository.allProgress.collect { progressByCategory ->
+                val completed = progressByCategory.values.sumOf { it.completedLevels.size }
                 _state.update {
                     it.copy(
-                        // Clamp so a fully-finished game re-opens on the last level
-                        // rather than a level id that does not exist.
-                        continueLevelId = progress.highestUnlockedLevel.coerceIn(1, total.coerceAtLeast(1)),
-                        completedCount = progress.completedLevels.size,
+                        completedCount = completed,
                         totalLevels = total,
-                        totalBonusWords = progress.totalBonusWords,
+                        totalBonusWords = progressByCategory.values.sumOf { progress -> progress.totalBonusWords },
                     )
                 }
             }

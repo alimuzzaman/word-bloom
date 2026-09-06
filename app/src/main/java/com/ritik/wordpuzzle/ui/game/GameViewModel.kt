@@ -55,7 +55,11 @@ class GameViewModel(
 
     init {
         // Restore after process death, if we have something to restore.
-        savedStateHandle.get<Int>(KEY_LEVEL_ID)?.let { loadLevel(it, restoring = true) }
+        val restoredCategory = savedStateHandle.get<String>(KEY_CATEGORY_ID)
+        val restoredLevel = savedStateHandle.get<Int>(KEY_LEVEL_ID)
+        if (restoredCategory != null && restoredLevel != null) {
+            loadLevel(restoredCategory, restoredLevel, restoring = true)
+        }
     }
 
     fun onIntent(intent: GameIntent) {
@@ -63,7 +67,9 @@ class GameViewModel(
             is GameIntent.LoadLevel -> {
                 // Ignore a redundant reload — e.g. the composable re-running after
                 // rotation — so found words are not wiped.
-                if (_state.value.level?.id != intent.levelId) loadLevel(intent.levelId)
+                if (_state.value.categoryId != intent.categoryId || _state.value.level?.id != intent.levelId) {
+                    loadLevel(intent.categoryId, intent.levelId)
+                }
             }
             is GameIntent.BeginSelection -> beginSelection(intent.tile)
             is GameIntent.ExtendSelection -> extendSelection(intent.tile)
@@ -73,7 +79,9 @@ class GameViewModel(
             GameIntent.UseHint -> useHint()
             GameIntent.Pause -> _state.update { it.copy(isPaused = true, selection = emptyList()) }
             GameIntent.Resume -> _state.update { it.copy(isPaused = false) }
-            GameIntent.RestartLevel -> _state.value.level?.let { loadLevel(it.id, force = true) }
+            GameIntent.RestartLevel -> _state.value.level?.let {
+                loadLevel(_state.value.categoryId, it.id, force = true)
+            }
             GameIntent.AdvanceToNextLevel -> advanceToNextLevel()
             GameIntent.ConsumeFeedback -> _state.update { it.copy(feedback = null, lastAcceptedWord = null) }
         }
@@ -81,10 +89,15 @@ class GameViewModel(
 
     // ------------------------------------------------------------------ loading
 
-    private fun loadLevel(levelId: Int, restoring: Boolean = false, force: Boolean = false) {
+    private fun loadLevel(
+        categoryId: String,
+        levelId: Int,
+        restoring: Boolean = false,
+        force: Boolean = false,
+    ) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
-            val level = levelRepository.getLevel(levelId)
+            val level = levelRepository.getLevel(categoryId, levelId)
             if (level == null) {
                 _state.update { it.copy(isLoading = false) }
                 return@launch
@@ -97,6 +110,7 @@ class GameViewModel(
             val hints = if (restoring && !force) savedStateHandle.get<Int>(KEY_HINTS) ?: 0 else 0
 
             savedStateHandle[KEY_LEVEL_ID] = levelId
+            savedStateHandle[KEY_CATEGORY_ID] = categoryId
             if (force) persist(emptySet(), emptySet(), emptySet(), 0)
 
             isCompletionPending = false
@@ -104,12 +118,13 @@ class GameViewModel(
                 GameUiState(
                     isLoading = false,
                     level = level,
+                    categoryId = categoryId,
                     foundWords = found,
                     foundBonusWords = bonus,
                     revealedCells = reveals,
                     wheelTiles = level.letterTiles,
                     hintsUsed = hints,
-                    isLastLevel = levelId >= levelRepository.levelCount(),
+                    isLastLevel = levelRepository.getNextLevel(categoryId, levelId) == null,
                     isLevelComplete = found.size == level.words.size && level.words.isNotEmpty(),
                 )
             }
@@ -207,12 +222,13 @@ class GameViewModel(
         viewModelScope.launch {
             _effects.send(GameEffect.WordAccepted(word))
             if (completesLevel) {
-                delay(LEVEL_COMPLETE_DELAY_MS)
-                progressRepository.markLevelCompleted(
+                progressRepository.completeLevel(
+                    categoryId = level.categoryId,
                     levelId = level.id,
-                    nextLevelId = (level.id + 1).takeIf { it <= levelRepository.levelCount() },
+                    nextLevelOrder = levelRepository.getNextLevel(level.categoryId, level.id)?.order,
+                    bonusWordsFound = _state.value.foundBonusWords.size,
                 )
-                progressRepository.addBonusWords(_state.value.foundBonusWords.size)
+                delay(LEVEL_COMPLETE_DELAY_MS)
                 _state.update { it.copy(isLevelComplete = true) }
                 _effects.send(GameEffect.LevelCompleted)
             }
@@ -268,11 +284,11 @@ class GameViewModel(
     private fun advanceToNextLevel() {
         val level = _state.value.level ?: return
         viewModelScope.launch {
-            val next = level.id + 1
-            if (next <= levelRepository.levelCount()) {
-                _effects.send(GameEffect.NavigateToLevel(next))
+            val next = levelRepository.getNextLevel(level.categoryId, level.id)
+            if (next != null) {
+                _effects.send(GameEffect.NavigateToLevel(level.categoryId, next.id))
             } else {
-                _effects.send(GameEffect.NavigateHome)
+                _effects.send(GameEffect.NavigateToLevelSelect(level.categoryId))
             }
         }
     }
@@ -310,6 +326,7 @@ class GameViewModel(
         private const val LEVEL_COMPLETE_DELAY_MS = 620L
 
         private const val KEY_LEVEL_ID = "level_id"
+        private const val KEY_CATEGORY_ID = "category_id"
         private const val KEY_FOUND = "found_words"
         private const val KEY_BONUS = "bonus_words"
         private const val KEY_REVEALS = "revealed_cells"

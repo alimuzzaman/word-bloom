@@ -57,8 +57,7 @@ import kotlin.math.sin
 @Composable
 fun HomeRoute(
     appContainer: AppContainer,
-    onPlay: (Int) -> Unit,
-    onLevelSelect: () -> Unit,
+    onPlay: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val viewModel: HomeViewModel = viewModel(
@@ -68,8 +67,7 @@ fun HomeRoute(
 
     HomeScreen(
         state = state,
-        onPlay = { onPlay(state.continueLevelId) },
-        onLevelSelect = onLevelSelect,
+        onPlay = onPlay,
         modifier = modifier,
     )
 }
@@ -78,7 +76,6 @@ fun HomeRoute(
 private fun HomeScreen(
     state: HomeUiState,
     onPlay: () -> Unit,
-    onLevelSelect: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = WordPuzzleTheme.colors
@@ -158,22 +155,11 @@ private fun HomeScreen(
                     },
             ) {
                 PrimaryButton(
-                    text = if (state.hasProgress) {
-                        "Continue · Level ${state.continueLevelId}"
-                    } else {
-                        "Play"
-                    },
+                    text = if (state.hasProgress) "Continue" else "Play",
                     onClick = onPlay,
                     modifier = Modifier.fillMaxWidth(),
                 )
 
-                Spacer(Modifier.height(14.dp))
-
-                SecondaryButton(
-                    text = "Levels",
-                    onClick = onLevelSelect,
-                    modifier = Modifier.fillMaxWidth(),
-                )
             }
 
             if (state.hasProgress) {

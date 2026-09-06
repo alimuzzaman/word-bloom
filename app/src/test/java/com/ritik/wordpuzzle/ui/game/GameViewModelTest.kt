@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import com.ritik.wordpuzzle.data.local.PlayerProgress
 import com.ritik.wordpuzzle.data.local.ProgressRepository
 import com.ritik.wordpuzzle.data.repository.LevelRepository
+import com.ritik.wordpuzzle.domain.model.Category
 import com.ritik.wordpuzzle.domain.model.Direction
 import com.ritik.wordpuzzle.domain.model.GridPosition
 import com.ritik.wordpuzzle.domain.model.Level
@@ -25,6 +26,8 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+
+private const val TEST_CATEGORY = "animals"
 
 /**
  * Unit tests for the gameplay state machine.
@@ -59,7 +62,7 @@ class GameViewModelTest {
     @Test
     fun `loading a level populates the board`() = runTest(dispatcher) {
         val vm = viewModel()
-        vm.onIntent(GameIntent.LoadLevel(1))
+        vm.onIntent(GameIntent.LoadLevel(TEST_CATEGORY, 1))
         advanceUntilIdle()
 
         val state = vm.state.value
@@ -72,14 +75,14 @@ class GameViewModelTest {
     @Test
     fun `reloading the same level does not wipe progress`() = runTest(dispatcher) {
         val vm = viewModel()
-        vm.onIntent(GameIntent.LoadLevel(1))
+        vm.onIntent(GameIntent.LoadLevel(TEST_CATEGORY, 1))
         advanceUntilIdle()
         vm.trace("CAT")
         advanceUntilIdle()
         assertEquals(setOf("CAT"), vm.state.value.foundWords)
 
         // Simulates the composable re-running LaunchedEffect after a config change.
-        vm.onIntent(GameIntent.LoadLevel(1))
+        vm.onIntent(GameIntent.LoadLevel(TEST_CATEGORY, 1))
         advanceUntilIdle()
 
         assertEquals(setOf("CAT"), vm.state.value.foundWords)
@@ -90,7 +93,7 @@ class GameViewModelTest {
     @Test
     fun `tracing a grid word marks it found`() = runTest(dispatcher) {
         val vm = viewModel()
-        vm.onIntent(GameIntent.LoadLevel(1))
+        vm.onIntent(GameIntent.LoadLevel(TEST_CATEGORY, 1))
         advanceUntilIdle()
 
         vm.trace("CAT")
@@ -104,7 +107,7 @@ class GameViewModelTest {
     @Test
     fun `tracing a bonus word scores separately from grid words`() = runTest(dispatcher) {
         val vm = viewModel()
-        vm.onIntent(GameIntent.LoadLevel(1))
+        vm.onIntent(GameIntent.LoadLevel(TEST_CATEGORY, 1))
         advanceUntilIdle()
 
         vm.trace("TA")
@@ -118,7 +121,7 @@ class GameViewModelTest {
     @Test
     fun `tracing a non-word is rejected`() = runTest(dispatcher) {
         val vm = viewModel()
-        vm.onIntent(GameIntent.LoadLevel(1))
+        vm.onIntent(GameIntent.LoadLevel(TEST_CATEGORY, 1))
         advanceUntilIdle()
 
         vm.trace("TAC")
@@ -131,7 +134,7 @@ class GameViewModelTest {
     @Test
     fun `re-tracing a found word reports it as already found`() = runTest(dispatcher) {
         val vm = viewModel()
-        vm.onIntent(GameIntent.LoadLevel(1))
+        vm.onIntent(GameIntent.LoadLevel(TEST_CATEGORY, 1))
         advanceUntilIdle()
 
         vm.trace("CAT")
@@ -146,7 +149,7 @@ class GameViewModelTest {
     @Test
     fun `dragging back onto the previous tile removes the last letter`() = runTest(dispatcher) {
         val vm = viewModel()
-        vm.onIntent(GameIntent.LoadLevel(1))
+        vm.onIntent(GameIntent.LoadLevel(TEST_CATEGORY, 1))
         advanceUntilIdle()
         val tiles = vm.state.value.wheelTiles
 
@@ -163,7 +166,7 @@ class GameViewModelTest {
     @Test
     fun `a tile already in the word cannot be consumed a second time`() = runTest(dispatcher) {
         val vm = viewModel()
-        vm.onIntent(GameIntent.LoadLevel(1))
+        vm.onIntent(GameIntent.LoadLevel(TEST_CATEGORY, 1))
         advanceUntilIdle()
         val tiles = vm.state.value.wheelTiles
 
@@ -181,7 +184,7 @@ class GameViewModelTest {
     @Test
     fun `re-entering the current tile is a no-op`() = runTest(dispatcher) {
         val vm = viewModel()
-        vm.onIntent(GameIntent.LoadLevel(1))
+        vm.onIntent(GameIntent.LoadLevel(TEST_CATEGORY, 1))
         advanceUntilIdle()
         val tiles = vm.state.value.wheelTiles
 
@@ -197,7 +200,7 @@ class GameViewModelTest {
     @Test
     fun `cancelling a gesture clears the selection without validating`() = runTest(dispatcher) {
         val vm = viewModel()
-        vm.onIntent(GameIntent.LoadLevel(1))
+        vm.onIntent(GameIntent.LoadLevel(TEST_CATEGORY, 1))
         advanceUntilIdle()
         val tiles = vm.state.value.wheelTiles
 
@@ -215,7 +218,7 @@ class GameViewModelTest {
     @Test
     fun `finding every grid word completes the level and unlocks the next`() = runTest(dispatcher) {
         val vm = viewModel()
-        vm.onIntent(GameIntent.LoadLevel(1))
+        vm.onIntent(GameIntent.LoadLevel(TEST_CATEGORY, 1))
         advanceUntilIdle()
 
         vm.trace("CAT")
@@ -225,7 +228,7 @@ class GameViewModelTest {
 
         assertTrue(vm.state.value.isLevelComplete)
         assertTrue(progressRepository.completed.contains(1))
-        assertEquals(2, progressRepository.progressState.value.highestUnlockedLevel)
+        assertEquals(2, progressRepository.progressState.value.highestUnlockedOrder)
     }
 
     @Test
@@ -234,7 +237,7 @@ class GameViewModelTest {
         // accepted word's animation coroutine finished, so a fast player's second
         // and third words were silently swallowed.
         val vm = viewModel()
-        vm.onIntent(GameIntent.LoadLevel(1))
+        vm.onIntent(GameIntent.LoadLevel(TEST_CATEGORY, 1))
         advanceUntilIdle()
 
         vm.trace("CAT")
@@ -248,7 +251,7 @@ class GameViewModelTest {
     fun `the final level is flagged so the UI can offer level select instead of next`() =
         runTest(dispatcher) {
             val vm = viewModel()
-            vm.onIntent(GameIntent.LoadLevel(2))
+            vm.onIntent(GameIntent.LoadLevel(TEST_CATEGORY, 2))
             advanceUntilIdle()
 
             assertTrue(vm.state.value.isLastLevel)
@@ -260,7 +263,7 @@ class GameViewModelTest {
     fun `shuffle keeps the same letters and clears any in-flight selection`() =
         runTest(dispatcher) {
             val vm = viewModel()
-            vm.onIntent(GameIntent.LoadLevel(1))
+            vm.onIntent(GameIntent.LoadLevel(TEST_CATEGORY, 1))
             advanceUntilIdle()
             val before = vm.state.value.wheelTiles
 
@@ -276,7 +279,7 @@ class GameViewModelTest {
     fun `a hint reveals one unsolved cell and never re-reveals a visible one`() =
         runTest(dispatcher) {
             val vm = viewModel()
-            vm.onIntent(GameIntent.LoadLevel(1))
+            vm.onIntent(GameIntent.LoadLevel(TEST_CATEGORY, 1))
             advanceUntilIdle()
 
             vm.onIntent(GameIntent.UseHint)
@@ -292,7 +295,7 @@ class GameViewModelTest {
     @Test
     fun `pausing blocks new selections until resumed`() = runTest(dispatcher) {
         val vm = viewModel()
-        vm.onIntent(GameIntent.LoadLevel(1))
+        vm.onIntent(GameIntent.LoadLevel(TEST_CATEGORY, 1))
         advanceUntilIdle()
         val tiles = vm.state.value.wheelTiles
 
@@ -308,7 +311,7 @@ class GameViewModelTest {
     @Test
     fun `restarting a level clears found words`() = runTest(dispatcher) {
         val vm = viewModel()
-        vm.onIntent(GameIntent.LoadLevel(1))
+        vm.onIntent(GameIntent.LoadLevel(TEST_CATEGORY, 1))
         advanceUntilIdle()
         vm.trace("CAT")
         advanceUntilIdle()
@@ -327,7 +330,7 @@ class GameViewModelTest {
         val saved = SavedStateHandle()
 
         val first = viewModel(saved)
-        first.onIntent(GameIntent.LoadLevel(1))
+        first.onIntent(GameIntent.LoadLevel(TEST_CATEGORY, 1))
         advanceUntilIdle()
         first.trace("CAT")
         advanceUntilIdle()
@@ -363,6 +366,7 @@ private class FakeLevelRepository : LevelRepository {
     private val levels = listOf(
         Level(
             id = 1,
+            categoryId = TEST_CATEGORY,
             letterTiles = listOf(LetterTile(0, 'C'), LetterTile(1, 'A'), LetterTile(2, 'T')),
             words = listOf("CAT", "ACT", "AT"),
             bonusWords = setOf("TA"),
@@ -376,6 +380,7 @@ private class FakeLevelRepository : LevelRepository {
         ),
         Level(
             id = 2,
+            categoryId = TEST_CATEGORY,
             letterTiles = listOf(LetterTile(0, 'D'), LetterTile(1, 'O'), LetterTile(2, 'G')),
             words = listOf("DOG"),
             bonusWords = setOf("GO"),
@@ -385,37 +390,58 @@ private class FakeLevelRepository : LevelRepository {
         ),
     )
 
-    override suspend fun getLevels(): List<Level> = levels
-    override suspend fun getLevel(id: Int): Level? = levels.firstOrNull { it.id == id }
-    override suspend fun levelCount(): Int = levels.size
+    override suspend fun getCategories(): List<Category> =
+        listOf(Category(TEST_CATEGORY, "Animals", "Animals", "paw", 1))
+
+    override suspend fun getLevels(categoryId: String): List<Level> =
+        if (categoryId == TEST_CATEGORY) levels else emptyList()
+
+    override suspend fun getLevel(categoryId: String, id: Int): Level? =
+        getLevels(categoryId).firstOrNull { it.id == id }
 }
 
 private class FakeProgressRepository : ProgressRepository {
 
-    val progressState = MutableStateFlow(PlayerProgress())
+    private val states = mutableMapOf<String, MutableStateFlow<PlayerProgress>>()
+    private val allProgressState = MutableStateFlow<Map<String, PlayerProgress>>(emptyMap())
+    val progressState: MutableStateFlow<PlayerProgress>
+        get() = stateFor(TEST_CATEGORY)
     val completed = mutableSetOf<Int>()
 
-    override val progress: Flow<PlayerProgress> = progressState
+    override fun progress(categoryId: String): Flow<PlayerProgress> = stateFor(categoryId)
+    override val allProgress: Flow<Map<String, PlayerProgress>> = allProgressState
 
-    override suspend fun markLevelCompleted(levelId: Int, nextLevelId: Int?) {
-        completed += levelId
-        progressState.value = progressState.value.copy(
-            completedLevels = completed.toSet(),
-            highestUnlockedLevel = maxOf(
-                progressState.value.highestUnlockedLevel,
-                nextLevelId ?: progressState.value.highestUnlockedLevel,
+    override suspend fun completeLevel(
+        categoryId: String,
+        levelId: Int,
+        nextLevelOrder: Int?,
+        bonusWordsFound: Int,
+    ) {
+        val progress = stateFor(categoryId)
+        val isFirstCompletion = levelId !in progress.value.completedLevels
+        if (categoryId == TEST_CATEGORY) completed += levelId
+        progress.value = progress.value.copy(
+            completedLevels = progress.value.completedLevels + levelId,
+            highestUnlockedOrder = maxOf(
+                progress.value.highestUnlockedOrder,
+                nextLevelOrder ?: progress.value.highestUnlockedOrder,
             ),
+            totalBonusWords = progress.value.totalBonusWords +
+                if (isFirstCompletion) bonusWordsFound.coerceAtLeast(0) else 0,
         )
+        publishAllProgress()
     }
 
-    override suspend fun addBonusWords(count: Int) {
-        progressState.value = progressState.value.copy(
-            totalBonusWords = progressState.value.totalBonusWords + count,
-        )
+    override suspend fun resetProgress(categoryId: String) {
+        if (categoryId == TEST_CATEGORY) completed.clear()
+        stateFor(categoryId).value = PlayerProgress()
+        publishAllProgress()
     }
 
-    override suspend fun resetProgress() {
-        completed.clear()
-        progressState.value = PlayerProgress()
+    private fun stateFor(categoryId: String): MutableStateFlow<PlayerProgress> =
+        states.getOrPut(categoryId) { MutableStateFlow(PlayerProgress()) }
+
+    private fun publishAllProgress() {
+        allProgressState.value = states.mapValues { it.value.value }
     }
 }

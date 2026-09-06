@@ -42,7 +42,16 @@ data class Level(
     val rows: Int,
     val cols: Int,
     val placements: List<Placement>,
+    val categoryId: String = "",
+    val order: Int = id,
+    val difficulty: Int = 1,
+    val heroWord: HeroWord = HeroWord(word = words.maxByOrNull { it.length }.orEmpty()),
+    /** Optional learning metadata; empty for legacy schema v1 catalogues. */
+    val ageBand: String = "",
+    val wordMeanings: List<WordMeaning> = emptyList(),
+    val lesson: LevelLesson? = null,
 ) {
+    val key: LevelKey = LevelKey(categoryId, id)
     /** Every grid cell that holds a letter, mapped to that letter. */
     val occupiedCells: Map<GridPosition, Char> =
         placements.flatMap { p -> p.cells.zip(p.word.toList()) }.toMap()
@@ -52,6 +61,53 @@ data class Level(
     /** Longest word — used for the level-select preview. */
     val keyWord: String = words.maxByOrNull { it.length }.orEmpty()
 }
+
+@Immutable
+data class LevelKey(val categoryId: String, val levelId: Int)
+
+@Immutable
+data class Category(
+    val id: String,
+    val nameEn: String,
+    val nameBn: String,
+    val iconKey: String,
+    val order: Int,
+    val introductionEn: String = "",
+    val introductionBn: String = "",
+    val completionEn: String = "",
+    val completionBn: String = "",
+    val completionWords: List<String> = emptyList(),
+    /** Long bilingual story containing the category's target vocabulary. */
+    val storyEn: String = "",
+    val storyBn: String = "",
+    val storyWords: List<String> = emptyList(),
+    val contentReviewStatus: String = "",
+)
+
+@Immutable
+data class HeroWord(
+    val word: String,
+    val definitionEn: String = "",
+    val translationBn: String = "",
+    val meaningBn: String = "",
+)
+
+/** Bilingual definition for one playable answer in a level. */
+@Immutable
+data class WordMeaning(
+    val word: String,
+    val definitionEn: String,
+    val translationBn: String,
+    val meaningBn: String,
+)
+
+/** Bilingual sentence that reinforces a level's target words. */
+@Immutable
+data class LevelLesson(
+    val sentenceEn: String,
+    val sentenceBn: String,
+    val usedWords: List<String> = emptyList(),
+)
 
 /** One letter on the wheel. [id] is stable across shuffles so animations can track it. */
 @Immutable

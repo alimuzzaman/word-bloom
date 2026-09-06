@@ -21,6 +21,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.ritik.wordpuzzle.di.AppContainer
 import com.ritik.wordpuzzle.ui.game.GameRoute
+import com.ritik.wordpuzzle.ui.category.CategoryRoute
 import com.ritik.wordpuzzle.ui.home.HomeRoute
 import com.ritik.wordpuzzle.ui.levelselect.LevelSelectRoute
 import com.ritik.wordpuzzle.ui.splash.SplashRoute
@@ -80,24 +81,40 @@ fun WordPuzzleNavHost(
         composable(Destination.Home.route) {
             HomeRoute(
                 appContainer = appContainer,
-                onPlay = { levelId ->
-                    navController.navigate(Destination.Game.createRoute(levelId)) {
-                        launchSingleTop = true
-                    }
-                },
-                onLevelSelect = {
-                    navController.navigate(Destination.LevelSelect.route) {
+                onPlay = {
+                    navController.navigate(Destination.Categories.route) {
                         launchSingleTop = true
                     }
                 },
             )
         }
 
-        composable(Destination.LevelSelect.route) {
+        composable(Destination.Categories.route) {
+            CategoryRoute(
+                appContainer = appContainer,
+                onCategoryClick = { categoryId ->
+                    navController.navigate(Destination.LevelSelect.createRoute(categoryId)) {
+                        launchSingleTop = true
+                    }
+                },
+                onBack = { navController.popBackStack() },
+            )
+        }
+
+        composable(
+            route = Destination.LevelSelect.route,
+            arguments = listOf(
+                navArgument(Destination.LevelSelect.ARG_CATEGORY_ID) { type = NavType.StringType },
+            ),
+        ) { backStackEntry ->
+            val categoryId = backStackEntry.arguments
+                ?.getString(Destination.LevelSelect.ARG_CATEGORY_ID)
+                .orEmpty()
             LevelSelectRoute(
+                categoryId = categoryId,
                 appContainer = appContainer,
                 onLevelClick = { levelId ->
-                    navController.navigate(Destination.Game.createRoute(levelId)) {
+                    navController.navigate(Destination.Game.createRoute(categoryId, levelId)) {
                         launchSingleTop = true
                     }
                 },
@@ -109,16 +126,21 @@ fun WordPuzzleNavHost(
             route = Destination.Game.route,
             arguments = listOf(
                 navArgument(Destination.Game.ARG_LEVEL_ID) { type = NavType.IntType },
+                navArgument(Destination.Game.ARG_CATEGORY_ID) { type = NavType.StringType },
             ),
             enterTransition = { scaleIn(initialScale = 0.94f, animationSpec = tween(TRANSITION_MS)) + fadeIn(tween(TRANSITION_MS)) },
             popExitTransition = { scaleOut(targetScale = 0.94f, animationSpec = tween(TRANSITION_MS)) + fadeOut(tween(TRANSITION_MS)) },
         ) { backStackEntry ->
             val levelId = backStackEntry.arguments?.getInt(Destination.Game.ARG_LEVEL_ID) ?: 1
+            val categoryId = backStackEntry.arguments
+                ?.getString(Destination.Game.ARG_CATEGORY_ID)
+                .orEmpty()
             GameRoute(
+                categoryId = categoryId,
                 levelId = levelId,
                 appContainer = appContainer,
                 onNavigateToLevel = { nextLevelId ->
-                    navController.navigate(Destination.Game.createRoute(nextLevelId)) {
+                    navController.navigate(Destination.Game.createRoute(categoryId, nextLevelId)) {
                         // Replace, don't stack: the finished level must not linger
                         // on the back stack.
                         popUpTo(backStackEntry.destination.route ?: Destination.Game.route) {
@@ -128,10 +150,8 @@ fun WordPuzzleNavHost(
                     }
                 },
                 onNavigateToLevelSelect = {
-                    navController.navigate(Destination.LevelSelect.route) {
-                        // Land on Level Select with Home beneath it, whether the
-                        // player entered the game from Home or from Level Select.
-                        popUpTo(Destination.Home.route)
+                    navController.navigate(Destination.LevelSelect.createRoute(categoryId)) {
+                        popUpTo(Destination.Categories.route)
                         launchSingleTop = true
                     }
                 },

@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lightbulb
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.CircularProgressIndicator
@@ -27,7 +28,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -49,6 +53,12 @@ import com.ritik.wordpuzzle.ui.game.components.CrosswordGrid
 import com.ritik.wordpuzzle.ui.game.components.LetterWheel
 import com.ritik.wordpuzzle.ui.game.components.WordPreview
 import com.ritik.wordpuzzle.ui.levelselect.IconCircleButton
+import com.ritik.wordpuzzle.ui.learning.FoundWordsOverlay
+import com.ritik.wordpuzzle.ui.learning.LearningWordCardData
+import com.ritik.wordpuzzle.ui.learning.LessonCardData
+import com.ritik.wordpuzzle.ui.learning.addLessonExamples
+import com.ritik.wordpuzzle.ui.learning.dedupeLearningWords
+import com.ritik.wordpuzzle.domain.model.Level
 import com.ritik.wordpuzzle.ui.theme.AccentAmber
 import com.ritik.wordpuzzle.ui.theme.AccentTeal
 import com.ritik.wordpuzzle.ui.theme.WordPuzzleTheme
@@ -63,6 +73,7 @@ import com.ritik.wordpuzzle.util.Haptics
  */
 @Composable
 fun GameRoute(
+    categoryId: String,
     levelId: Int,
     appContainer: AppContainer,
     onNavigateToLevel: (Int) -> Unit,
@@ -80,11 +91,13 @@ fun GameRoute(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val view = LocalView.current
     val haptics = remember(view) { Haptics(view) }
+    var showFoundWords by rememberSaveable { mutableStateOf(false) }
 
     // Load once per level id. Guarded inside the ViewModel too, so a recomposition
     // or rotation cannot reset the board.
-    LaunchedEffect(levelId) {
-        viewModel.onIntent(GameIntent.LoadLevel(levelId))
+    LaunchedEffect(categoryId, levelId) {
+        showFoundWords = false
+        viewModel.onIntent(GameIntent.LoadLevel(categoryId, levelId))
     }
 
     // Auto-pause when the app goes to the background, so a player returning from a
@@ -102,6 +115,7 @@ fun GameRoute(
                 GameEffect.WordRejected -> haptics.reject()
                 GameEffect.LevelCompleted -> haptics.celebrate()
                 is GameEffect.NavigateToLevel -> onNavigateToLevel(effect.levelId)
+                is GameEffect.NavigateToLevelSelect -> onNavigateToLevelSelect()
                 GameEffect.NavigateHome -> onNavigateHome()
             }
         }
@@ -110,6 +124,9 @@ fun GameRoute(
     // System back: pause first, then let a second back leave the level. This is the
     // behaviour players expect from a game — back should never dump you out of a
     // level you are mid-way through without warning.
+    BackHandler(enabled = showFoundWords) {
+        showFoundWords = false
+    }
     BackHandler(enabled = !state.isPaused && !state.isLevelComplete) {
         viewModel.onIntent(GameIntent.Pause)
     }
@@ -117,16 +134,75 @@ fun GameRoute(
     GameScreen(
         state = state,
         onIntent = viewModel::onIntent,
+        onLearn = { showFoundWords = true },
         onQuitToHome = onNavigateHome,
         onGoToLevelSelect = onNavigateToLevelSelect,
         modifier = modifier,
     )
+
+    val level = state.level
+    if (level != null) {
+        val allWordCards = level.toLearningWordCards()
+        FoundWordsOverlay(
+            // The completion modal owns the full glossary. Do not leave the
+            // active-level book sheet above it when the final word is found.
+            visible = showFoundWords && !state.isLevelComplete,
+            levelLabel = "Level ${level.id} · ${state.foundWords.size}/${state.totalWords} words",
+            foundWords = allWordCards.filter { card ->
+                state.foundWords.any { it.equals(card.word, ignoreCase = true) }
+            },
+            lesson = level.toLessonCard(),
+            allWords = allWordCards,
+            // Unfinished levels reveal only words the player has already found.
+            // Completion shows the full, detailed glossary below.
+            showAllWords = false,
+            onDismiss = { showFoundWords = false },
+        )
+    }
 }
+
+private fun Level.toLearningWordCards(): List<LearningWordCardData> {
+    val meaningsByWord = wordMeanings.associateBy { meaning -> meaning.word.uppercase() }
+    val cards = dedupeLearningWords(words.mapNotNull { rawWord ->
+        val word = rawWord.uppercase()
+        meaningsByWord[word]?.let { meaning ->
+            LearningWordCardData(
+                word = meaning.word,
+                definitionEn = meaning.definitionEn,
+                translationBn = meaning.translationBn,
+                meaningBn = meaning.meaningBn,
+            )
+        } ?: if (heroWord.word.equals(word, ignoreCase = true)) {
+            LearningWordCardData(
+                word = heroWord.word,
+                definitionEn = heroWord.definitionEn,
+                translationBn = heroWord.translationBn,
+                meaningBn = heroWord.meaningBn,
+            )
+        } else {
+            null
+        }
+    })
+    return addLessonExamples(cards, toLessonCard())
+}
+
+private fun Level.toLessonCard(): LessonCardData = LessonCardData(
+    heroWord = LearningWordCardData(
+        word = heroWord.word,
+        definitionEn = heroWord.definitionEn,
+        translationBn = heroWord.translationBn,
+        meaningBn = heroWord.meaningBn,
+    ),
+    sentenceEn = lesson?.sentenceEn.orEmpty(),
+    sentenceBn = lesson?.sentenceBn.orEmpty(),
+    usedWords = lesson?.usedWords.orEmpty(),
+)
 
 @Composable
 private fun GameScreen(
     state: GameUiState,
     onIntent: (GameIntent) -> Unit,
+    onLearn: () -> Unit,
     onQuitToHome: () -> Unit,
     onGoToLevelSelect: () -> Unit,
     modifier: Modifier = Modifier,
@@ -147,7 +223,7 @@ private fun GameScreen(
             }
 
             else -> {
-                GameContent(state = state, onIntent = onIntent)
+                GameContent(state = state, onIntent = onIntent, onLearn = onLearn)
             }
         }
 
@@ -166,6 +242,10 @@ private fun GameScreen(
             levelId = state.level?.id ?: 0,
             bonusWordCount = state.foundBonusWords.size,
             isLastLevel = state.isLastLevel,
+            lesson = state.level?.let { level ->
+                level.toLessonCard()
+            },
+            words = state.level?.toLearningWordCards().orEmpty(),
             onNext = { onIntent(GameIntent.AdvanceToNextLevel) },
             onLevelSelect = onGoToLevelSelect,
         )
@@ -176,6 +256,7 @@ private fun GameScreen(
 private fun GameContent(
     state: GameUiState,
     onIntent: (GameIntent) -> Unit,
+    onLearn: () -> Unit,
 ) {
     val level = state.level ?: return
     val colors = WordPuzzleTheme.colors
@@ -206,6 +287,7 @@ private fun GameContent(
             totalCount = state.totalWords,
             bonusCount = state.foundBonusWords.size,
             progress = state.progressFraction,
+            onLearn = onLearn,
             onPause = { onIntent(GameIntent.Pause) },
         )
 
@@ -293,6 +375,7 @@ private fun GameTopBar(
     totalCount: Int,
     bonusCount: Int,
     progress: Float,
+    onLearn: () -> Unit,
     onPause: () -> Unit,
 ) {
     val colors = WordPuzzleTheme.colors
@@ -324,6 +407,12 @@ private fun GameTopBar(
                 )
             }
             Spacer(Modifier.weight(1f))
+            IconCircleButton(
+                icon = Icons.AutoMirrored.Filled.MenuBook,
+                contentDescription = stringResource(R.string.cd_learn_words),
+                onClick = onLearn,
+            )
+            Spacer(Modifier.size(8.dp))
             if (bonusCount > 0) {
                 Box(
                     modifier = Modifier

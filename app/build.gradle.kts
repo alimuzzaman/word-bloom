@@ -5,6 +5,13 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+// The API is deliberately opt-in.  A build without this property remains fully
+// offline and ships the validated categories.json catalogue.
+val configuredCatalogApiUrl = providers.gradleProperty("WORD_BLOOM_API_URL").orElse("").get()
+val escapedCatalogApiUrl = configuredCatalogApiUrl
+    .replace("\\", "\\\\")
+    .replace("\"", "\\\"")
+
 android {
     namespace = "com.ritik.wordpuzzle"
     compileSdk = 35
@@ -15,6 +22,8 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
+
+        buildConfigField("String", "LEVEL_CATALOG_URL", "\"$escapedCatalogApiUrl\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -57,6 +66,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     packaging {
